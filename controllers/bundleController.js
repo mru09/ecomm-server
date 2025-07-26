@@ -1,5 +1,6 @@
 const Bundle = require('../models/Bundle');
 const Product = require('../models/Product');
+const {getDiscountedPrice} =  require('./discount');
 
 // Create a new bundle (at least 2 products required)
 exports.createBundle = async (req, res) => {
@@ -38,9 +39,18 @@ exports.getBundles = async (req, res) => {
     const bundles = await Bundle.find()
       .populate('products')
       .skip((page - 1) * limit)
-      .limit(parseInt(limit));
+      .limit(parseInt(limit)).lean();
 
-    res.json(bundles);
+    const resBundles = bundles.map((item) => {
+      const discountedPrice = getDiscountedPrice(item.products);
+
+      return {
+        ...item,
+       discountedPrice
+      };
+    });
+
+    res.json(resBundles);
   } catch (err) {
     console.error('Error fetching bundles:', err);
     res.status(500).json({ message: err.message });
