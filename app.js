@@ -6,6 +6,7 @@ const bundleRoutes = require('./routes/bundleRoutes');
 const sellerRoutes = require('./routes/sellerRoutes');
 const userRoutes = require('./routes/userRoutes'); 
 const productRoutes = require('./routes/productRoutes');
+const cartRoutes = require('./routes/cartRoutes');
 
 
 // const swaggerUi = require('swagger-ui-express');
@@ -25,6 +26,7 @@ app.use('/api', bundleRoutes);
 app.use('/api/sellers', sellerRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/cart', cartRoutes);
 // app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDoc));
 
 module.exports = app;
