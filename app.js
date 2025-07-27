@@ -23,8 +23,8 @@ mongoose.connect(process.env.MONGO_URI)
   .catch(err => console.log(err));
 
 app.use('/api', bundleRoutes);
-app.use('/api/sellers', sellerRoutes);
-app.use('/api/users', userRoutes);
+app.use('/api/seller', sellerRoutes);
+app.use('/api/user', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
 // app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDoc));
