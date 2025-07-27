@@ -21,7 +21,7 @@ exports.createBundle = async (req, res) => {
     const bundle = new Bundle({
       name,
       products: productIds,
-      sellerId: req.seller.id
+      sellerId: req.userId 
     });
 
     await bundle.save();
@@ -67,7 +67,7 @@ exports.updateBundle = async (req, res) => {
     const bundle = await Bundle.findById(req.params.id);
     if (!bundle) return res.status(404).json({ message: 'Bundle not found' });
 
-    if (bundle.sellerId.toString() !== req.seller.id) {
+    if (bundle.sellerId.toString() !== req.userId) {
       return res.status(403).json({ message: 'Forbidden' });
     }
 
@@ -96,7 +96,7 @@ exports.deleteBundle = async (req, res) => {
     const bundle = await Bundle.findById(req.params.id);
     if (!bundle) return res.status(404).json({ message: 'Bundle not found' });
 
-    if (bundle.sellerId.toString() !== req.seller.id) {
+    if (bundle.sellerId.toString() !== req.userId) {
       return res.status(403).json({ message: 'Forbidden' });
     }
 
