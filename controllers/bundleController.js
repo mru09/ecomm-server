@@ -1,3 +1,4 @@
+const { ObjectId } = require('mongodb');
 const Bundle = require('../models/Bundle');
 const Product = require('../models/Product');
 const {getDiscountedPrice} =  require('./discount');
@@ -36,10 +37,13 @@ exports.getBundles = async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
 
-    const bundles = await Bundle.find()
+    const query = req.role === 'seller' ? { sellerId: new ObjectId(req.userId) } : {};
+
+    const bundles = await Bundle.find(query)
       .populate('products')
       .skip((page - 1) * limit)
-      .limit(parseInt(limit)).lean();
+      .limit(parseInt(limit))
+      .lean();
 
     const resBundles = bundles.map((item) => {
       const discountedPrice = getDiscountedPrice(item.products);

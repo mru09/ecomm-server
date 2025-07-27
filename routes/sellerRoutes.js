@@ -33,7 +33,7 @@ router.post('/login', async (req, res) => {
     const match = await bcrypt.compare(password, seller.password);
     if (!match) return res.status(400).json({ message: 'Invalid credentials' });
 
-    const token = jwt.sign({ id: seller._id, email: seller.email }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: seller._id, email: seller.email, role: 'seller' }, process.env.JWT_SECRET, {
       expiresIn: '1d'
     });
 
