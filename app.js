@@ -22,7 +22,7 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.log(err));
 
-app.use('/api', bundleRoutes);
+app.use('/api/bundles', bundleRoutes);
 app.use('/api/seller', sellerRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/products', productRoutes);

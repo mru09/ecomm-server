@@ -103,28 +103,3 @@ exports.deleteBundle = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
-
-// Check the total and discounted price of a bundle
-exports.checkDiscount = async (req, res) => {
-  try {
-    const bundle = await Bundle.findById(req.params.id).populate('products');
-
-    if (!bundle) return res.status(404).json({ message: 'Bundle not found' });
-
-    let total = 0;
-    bundle.products.forEach(product => {
-      total += product.salePrice || product.price;
-    });
-
-    const discount = total * 0.10;
-    const discountedPrice = total - discount;
-
-    res.json({
-      originalPrice: total,
-      discountedPrice: discountedPrice
-    });
-  } catch (err) {
-    console.error('Error checking discount:', err);
-    res.status(500).json({ message: err.message });
-  }
-};

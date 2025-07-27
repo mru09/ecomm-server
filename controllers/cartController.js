@@ -18,27 +18,34 @@ exports.getCart = async (req, res) => {
       return res.json({ products: [], bundles: [] });
     }
 
-    // Transform products
     const transformedProducts = cart.products.map((item) => ({
+      _id: item.product._id,
       name: item.product.name,
+      price: item.product.price,
       quantity: item.quantity,
-      price: item.product.price * item.quantity,
+      total: item.quantity * item.product.price,
     }));
 
-    // Transform bundles
     const transformedBundles = cart.bundles.map((item) => {
-      const discountedPrice = getDiscountedPrice(item.bundle.products) * item.quantity;
-
+      let discountedPrice = getDiscountedPrice(item.bundle.products);
       return {
+        _id: item.bundle._id,
         name: item.bundle.name,
         quantity: item.quantity,
         price: discountedPrice,
+        total: discountedPrice * item.quantity,
       };
     });
+
+    const total = [
+      ...transformedProducts.map((p) => p.total),
+      ...transformedBundles.map((b) => b.total),
+    ].reduce((sum, x) => sum + x, 0);
 
     res.json({
       products: transformedProducts,
       bundles: transformedBundles,
+      total,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -69,6 +76,48 @@ exports.addToCart = async (req, res) => {
         existingBundle.quantity += 1;
       } else {
         cart.bundles.push({ bundle: itemId, quantity: 1 });
+      }
+    }
+
+    await cart.save();
+    res.json(cart);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.removeFromCart = async (req, res) => {
+  const { type, itemId } = req.body;
+
+  try {
+    const cart = await Cart.findOne({ userId: req.userId });
+    if (!cart) return res.status(404).json({ message: 'Cart not found' });
+
+    if (type === 'product') {
+      const existingProduct = cart.products.find(
+        (p) => p.product.toString() === itemId
+      );
+      if (existingProduct) {
+        if (existingProduct.quantity > 1) {
+          existingProduct.quantity -= 1;
+        } else {
+          cart.products = cart.products.filter(
+            (p) => p.product.toString() !== itemId
+          );
+        }
+      }
+    } else if (type === 'bundle') {
+      const existingBundle = cart.bundles.find(
+        (b) => b.bundle.toString() === itemId
+      );
+      if (existingBundle) {
+        if (existingBundle.quantity > 1) {
+          existingBundle.quantity -= 1;
+        } else {
+          cart.bundles = cart.bundles.filter(
+            (b) => b.bundle.toString() !== itemId
+          );
+        }
       }
     }
 
