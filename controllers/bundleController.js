@@ -36,13 +36,20 @@ exports.createBundle = async (req, res) => {
 exports.getBundles = async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
+    const parsedPage = parseInt(page);
+    const parsedLimit = parseInt(limit);
+    const skip = (parsedPage - 1) * parsedLimit;
 
-    const query = req.role === 'seller' ? { sellerId: new ObjectId(req.userId) } : {};
+    const query = req.role === 'seller'
+      ? { sellerId: new ObjectId(req.userId) }
+      : {};
+
+    const totalCount = await Bundle.countDocuments(query);
 
     const bundles = await Bundle.find(query)
       .populate('products')
-      .skip((page - 1) * limit)
-      .limit(parseInt(limit))
+      .skip(skip)
+      .limit(parsedLimit)
       .lean();
 
     const resBundles = bundles.map((item) => {
@@ -54,7 +61,12 @@ exports.getBundles = async (req, res) => {
       };
     });
 
-    res.json(resBundles);
+    res.json({
+      totalCount,
+      totalPages: Math.ceil(totalCount / parsedLimit),
+      currentPage: parsedPage,
+      bundles: resBundles,
+    });
   } catch (err) {
     console.error('Error fetching bundles:', err);
     res.status(500).json({ message: err.message });
