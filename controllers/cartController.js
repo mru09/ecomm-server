@@ -1,23 +1,7 @@
 const Cart = require('../models/Cart');
 const {getDiscountedPrice} =  require('./discount');
 
-exports.getCart = async (req, res) => {
-  try {
-    const cart = await Cart.findOne({ userId: req.userId })
-      .populate({
-        path: 'products.product',
-      })
-      .populate({
-        path: 'bundles.bundle',
-        populate: {
-          path: 'products', // deeply populate each product inside bundles
-        },
-      }); 
-
-    if (!cart) {
-      return res.json({ products: [], bundles: [] });
-    }
-
+const formatCart = (cart) => {
     const transformedProducts = cart.products.map((item) => ({
       _id: item.product._id,
       name: item.product.name,
@@ -42,11 +26,31 @@ exports.getCart = async (req, res) => {
       ...transformedBundles.map((b) => b.total),
     ].reduce((sum, x) => sum + x, 0);
 
-    res.json({
+    return {
       products: transformedProducts,
       bundles: transformedBundles,
       total,
-    });
+    };
+}
+
+exports.getCart = async (req, res) => {
+  try {
+    const cart = await Cart.findOne({ userId: req.userId })
+      .populate({
+        path: 'products.product',
+      })
+      .populate({
+        path: 'bundles.bundle',
+        populate: {
+          path: 'products', // deeply populate each product inside bundles
+        },
+      }); 
+
+    if (!cart) {
+      return res.json({ products: [], bundles: [], total: 0 });
+    }
+
+    res.json(formatCart(cart));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -91,6 +95,7 @@ exports.removeFromCart = async (req, res) => {
 
   try {
     const cart = await Cart.findOne({ userId: req.userId });
+
     if (!cart) return res.status(404).json({ message: 'Cart not found' });
 
     if (type === 'product') {
@@ -122,7 +127,17 @@ exports.removeFromCart = async (req, res) => {
     }
 
     await cart.save();
-    res.json(cart);
+    const updatedCart = await Cart.findOne({ userId: req.userId })      
+      .populate({
+        path: 'products.product',
+      })
+      .populate({
+        path: 'bundles.bundle',
+        populate: {
+          path: 'products', // deeply populate each product inside bundles
+        },
+      }); ;
+    res.json(formatCart(updatedCart));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
