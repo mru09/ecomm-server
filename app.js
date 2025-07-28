@@ -15,7 +15,7 @@ const cartRoutes = require('./routes/cartRoutes');
 dotenv.config();
 
 const app = express();
-app.use(cors({ origin: 'https://ecomm-frontend-1xqc.onrender.com'})); 
+app.use(cors()); 
 
 app.use(express.json());
 
